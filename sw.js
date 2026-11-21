@@ -1,5 +1,5 @@
 // Offline cache for the scanner sign-in app. Pages are served cache-first and refreshed in the background.
-const CACHE = 'scanner-signin-6e5896c595';
+const CACHE = 'scanner-signin-f7099b017d';
 const ASSETS = ["./", "./index.html", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable.png", "./kiosk.html", "./kiosk.webmanifest", "./leads.html", "./leads.webmanifest"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
