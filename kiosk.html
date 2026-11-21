@@ -155,12 +155,25 @@ tr.click{cursor:pointer} tr.click:hover td{background:#f6f8fc}
 .sec h3{margin:0 0 10px}
 
 /* modal + toast */
-.modal-bg{position:fixed;inset:0;background:rgba(11,17,32,.55);display:flex;align-items:flex-start;justify-content:center;z-index:50;overflow:auto;padding:30px 14px}
-.modal{background:var(--bg);border-radius:20px;width:min(760px,100%);box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
-.modal .mh{background:var(--navy2);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:10px}
+.modal-bg{position:fixed;inset:0;background:rgba(11,17,32,.55);display:flex;align-items:center;justify-content:center;z-index:50;overflow:hidden;padding:14px}
+.modal{background:var(--bg);border-radius:20px;width:min(760px,100%);box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px)}
+.modal .mh{background:var(--navy2);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:10px;flex:none}
 .modal .mh h3{margin:0;flex:1;font-size:19px}
 .modal .mh button{background:transparent;border:0;color:#fff;font-size:26px;line-height:1}
-.modal .mb{padding:20px}
+.modal .mb{padding:20px;overflow-y:auto;flex:1 1 auto;min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.modal .mb>.navrow:last-child{position:sticky;bottom:-20px;z-index:3;background:var(--bg);margin:22px -20px -20px;padding:12px 20px;border-top:1px solid var(--line);box-shadow:0 -6px 14px rgba(11,17,32,.06)}
+.modal .sigwrap canvas{height:170px}
+/* signature modes */
+.sigmodes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.sigmodes button{flex:1;min-width:110px;border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;font-weight:700;color:var(--muted)}
+.sigmodes button.on{border-color:var(--navy3);background:#e8efff;color:var(--navy2)}
+.sigpane[hidden]{display:none}
+.sigtyped{font-size:20px}
+.sigprev{background:#fff;border:2px dashed #b7c0cf;border-radius:16px;min-height:110px;margin-top:10px;display:flex;align-items:center;padding:10px 24px;font:italic 44px 'Segoe Script','Brush Script MT','Lucida Handwriting','URW Chancery L',cursive;color:#0b1120;border-bottom:2px solid #c7cdd8;overflow:hidden;white-space:nowrap}
+.sigprev:empty::before{content:attr(data-ph);font:15px system-ui,sans-serif;color:#9aa3b2}
+.sigcheck{display:flex;gap:14px;align-items:center;background:#fff;border:2px dashed #b7c0cf;border-radius:16px;padding:18px 20px;cursor:pointer;font-weight:650;font-size:16.5px;line-height:1.35}
+.sigcheck input{width:34px;height:34px;flex:none;accent-color:var(--green)}
+.sigcheck.on{border-style:solid;border-color:var(--green);background:#eaf8ef}
 #demoBar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#f2b705;color:#1f1600;font-weight:700;font-size:13.5px;padding:7px 14px;display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;box-shadow:0 -2px 10px rgba(0,0,0,.15)}
 #demoBar button{border:0;background:#1f1600;color:#fff;border-radius:8px;padding:4px 10px;font-weight:700}
 body.demo{padding-bottom:40px}
@@ -215,6 +228,15 @@ video.cam{width:100%;border-radius:12px;background:#000;max-height:300px}
   .hdr .clock{display:none}
   main{padding:14px}
   .kv{grid-template-columns:1fr}
+  .modal-bg{padding:6px}
+  .modal{max-height:calc(100vh - 12px);max-height:calc(100dvh - 12px);border-radius:16px}
+  .modal .mb{padding:16px}
+  .modal .mb>.navrow:last-child{bottom:-16px;margin:18px -16px -16px;padding:10px 16px}
+  .modal .sigwrap canvas{height:150px}
+  .sigprev{font-size:34px;min-height:90px}
+  .modal .mb>.navrow:last-child{gap:8px}
+  .modal .mb>.navrow:last-child .row{flex-wrap:nowrap;gap:8px}
+  .modal .mb>.navrow:last-child .btn{white-space:nowrap;padding-left:12px;padding-right:12px}
 }
 </style>
 </head>
@@ -10338,7 +10360,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 'use strict';
 const HOSTED = true;         // true = the online/installable copy (no names built in)
 const MODE = 'employee';
-const SETUP_BLOB = {"salt":"Qq8JjCjewDEQb3XG5IIa0g==","iv":"mz0lSD21bVD8dB7C","ct":"EihGDEHCgY23/rjyfo0DyboHcg5MXycwQAO3kpuKne3AwvrvBZzN74LX5UVhqDZOXsxf1l13qE+AIipg2envlkIV/FfgVDT90uTNV8W6GSqwCP9CLuwDELEwqO8JR7q2QlVdT6B1HAYupgVm4b/dtfGB9bsxKHjQaD7M4/00i7wUaQu3rJnljGHQGM3BW4JmlXgDxJNiDW9pW+HCyG+wQ/2A1Go6FqELYDmvDsFtpDxwNKpb6OEr3N1MUnfuacr9rsd6jXtfs7eRlyf135FTqGF4xjEB/jdFgLN7ZheuoZCJdZuVkRrHuj0qfl2tDDkMzSV9ZbxHDhn8826XhCe5BGRF8sc6CyRELTCZEtOOdnJ86HD3I+1guKEagqVKItaIcrbCiN0XXX3r0EfBVgOwKucBduFk5/F+vx1NGjhfyzBKA7eFdxQTa24nsra/E/abtgLakCU8mWydKJnVF/xNL0h0ZDlR8bVgIc2q7pdetcU4qQeVsXjL6oOwQ0N1Gf11FaeuHMHGqg5aDmxksv4S8N0UROCzVmhrfZrprH1wds74b6uN7tmLbWqEG88jV0f2glbHrC6Jov9vgQx2r4SvGENQWXVe8YtNCWG87XGkIYvxHWDnNPOZG2MpIoIfxzk4Y3lghGxNqIMZJvGsSn1kznREmpp0K97DXfDHf0I0MGJJEg95QamlXui6UrqPTkfm/czmcLdB3ObzAdyUzjyZNJ23eKrmkPDPfcYhyUxDHDuHiXcCcBvCXY/cfSRsErVnHOdzuG8IOFjjn4B9amk859oReUGOYWtPWlkMQQRUdnWUTgXNPSS6kjMChX/SwnUpdibuejQZ2yOTdUiVkc3KLXBuUSnu20FoAJl42gcvEe66/lUEq8gTzBmSeT+9z7Tfxiq0GpatIw2H+bwsHzqh7kTBTdysTf++hb5d6gtzt1BH0X8rpIlZQJ+vwXElX1WnlK59NIZhc7ot3axlKWTIxyfDmUezunQqzM0SHvPZTTXLlD9LiTnJhs+h1vYS1fN43mfod7rMoTjEF2YvQw926EyxiEkNnm4yvQJnt5g0NOId8RKDmxcXD0XcsgzbSuV1e1m61fBDzZ6DbLAy4x9PlCupYJeSu6nNl2p4W1qwOe+7Z2ZdSpvIF7EZGdIaVUkodsXx94eZPyWLhgQdgCssUDthQ0oY4+BYroCbkDxVK5EvAdjyaHLDXzcvUF0QA/bOPYhKTILRZeONpttjZpejJVFuamYZJsquLt/ygiJwLJ6XasgLRcUyPcJHioCoYQlq2oHE9lAakDTOwTVWTQrrWX+Id10COIeUUuaxTa/XSCZRcdgZvSzRl8RVDhPdqtg5geAbaVHT8hv+0KNvYBy9CwS9JkRTRr0vOsHlZq/hMhzUmEqzbOHh74bVEe20iHp7qWCdMkFMZMAAqB0q4jlKnwAPYqlvQL9uxS9Wts97Xi6D5XqqMFeTUNox8byifrceY6+WXzvIDlQLtg1at8wzziaWHF0fEdVn4webpmcycHjxIACo+jygkEzLO2i+0CEyW3rxqvq4IJtEHuJ1SY/+Uj17f6R3LCSg0vT0wc89Kjy2Lo+5RY7XClxmTHFgMJnxVSKWfjlBgMLmuYGz9TpT83qAUB6/v18CgRrxumcHGBcXxKVhRzU/memfFE+iC1yZ2oxZHqzqezUAPIgAu2f/9xQJZoDFym/nI3jkXxVOVWJnd/rABzLYFiqgOFVSxaS7Qv0kSEJ0nqVdCZjG0PNEVJf8xTHzN744UO3ZA4GqLwpv3T/P1qe8JZzv1UHJxoMcpzYlP3xUAkruiuKbAkf0OALCzK3j+Bh817vgGdjtgkCIYcfOhTRUki+x3WuxTGSApYz1qNqX8Vcgh9gZlszsWwXpg8h3OAufrosi30sf5R8CAc4IaMKrfrbQWAppTXJxkX94+N3o948sat39BdlZw68mDJZGrqm4+Y/f9/xnN5Vgbr2E7SGC814OjqbIJ5gSx79lEMe1rBoQAC4y2VdkGewG/U0eBVE/q5KyltPweSbjSiQM8bMVgx31ubqwsjesMpnPOaLGAAlMXq1Zs1X0yJ2upuVws6eOwHg3b6UUpg5kqhtgVjn/mAXxxNiYYTHOuD8MuYYEHSFvQDOWABFV9V6V694FtX/99R1lp4mZlpAV88bWbN7IAl7yvRuM1S0FVDhz8ir0H/JayYcBHR9dvlaQY2LRmPEVWVttCJeWAQKaHTxDHuYVRhw1ZLFc9FUVS3efcRu3chziDc+cerV38FWk+iWTcX5BexgIqcoZSuLIGVktrePzSvgVJ4jhaSNpcnoT/fUtUa/HvMDv0qBOIth9uR7OVvY+cWAeudrCEURbhMrMxVNSJgDw0xYN2M2ZjKeMww99hAsIJklyrUPnqCh5s3lWse7K6c1vpgtCMcpo0vZbSEhA8NUsW+AI+nDmYQ2mOZXtA3bX0yTitb95xyGoT0TUL7DU164pKOjLImx+2UqZ7smcFyNF1q27hgV3t8uK5cp+WyliqjKOiKco/micJdnqZ/hzgo4qmj4f/OvPLTHHMBge01GEKCfNyhetyT12M0JEzx/MsvFdBpzhhYRr3LmMOYYyg/nI+lubW8UhdOjwkCQ93+/s0KoCmj4kkPftJGydDsQqkDSGzDt/mE2As54iP4vkhaBG88nY6S/qV/pM65Gh5Y55pVFiD7VwpUvGuKmkpLsPaCvakBJLF51ajIvRrwJ7rn2Kvh/qf3kqLDLRA2LzSzGcGgi8lsr0HJUEgGp0CZkY4sMJuaXHuz7SoPbX+R3fWXiTaoEfIveJodNpMGuKH/K4PddYogogW1V7qTs3Sk70qOXjmqWekU9nbS6DKdOsCB2rFNX8qeHz18pwVi+B0pPo9OoWbyigbb9f2U6GX1QmBu0xQMGWXnckOVsOvNKrCCS5FfvmEKSMKH6yqfCYRDDD6E5mfdmdbKETxfP04LOIwCQMr4gc5Sxbkf7BwsepCOTx3sukv8DRvosT0SQY2SNbamzQVU9fXzg6M6XOKoZHNolnq5LMEWnpLs88MgjPNPOa2qMZRjcBE6Nfw83NlNS3LHOmjPzzb5IFDNmsljOSrWxdw2OTHgLTCEyXhCK4UjbJ4EAfFVvjwaBU6E1S3uPSNoXwmRUq9yIwRokp+YOHSg3GBjXXkEIjc0/Vnv6FVXH2m+DTIGt/5WH82iqnymGMSY4OnPGFGzp4tTQJFmi4vuMERmYFu5jjUyc53tc51RiCUtzCvUIIoIiF10dKYbxSuH+EU1BMK9IS3n/oLlPGpG8B2Sq/GYO65j9T3dRinlsA6diSn93huxXd7ozyDfn1qNdmekjjn6jKhKRyVa3sW1MDwvlfpvkWIPc1zqlmZdccpb9dniDYOQ4YrpVGJm58I4YSsPW7CqnMu9U/j/bRJk7TUfgPAm0AGahzV+Q9b9x1lojLzfuhrRH6f0slEPths2oRF2L4JeVpzqHAF+1mHVQUf4yuFVR7e0nGjK1OgMH3wk6skaTgg7P65O7vwZmlPBMRJ3WkUUAwiQfrVtbPwn+zJVUzpX4HVwaKZGqOSb98P0Z0Nhi0MxLigoa129rqj4Shcyh7DaGsjuEkz0qzpRtwcWUVu4ZanOMblmKYApuKUf4HCOIlOhMIXckzak7BmrccI8ZI5K0zG94xFRE+vHgMUHLDiHRnR1ASrngeZRlM6Av4m+4Fziv7euV2jW6x26OYGOgxds/VXwLaaDN4lPDU81vr1iURaaPBRLPMfjXQanxxEfruePfURAyItD6YCWFzkZhciwSog3a6g19MytD2hQH7/Xbk+vOsDjzDSVaN7mOJUWikUQ6RSaBdSTCPzxXe3Ag/Dsw/eWl/Q4fBYo7RLCXwAebI+Emz6Vn8eLffZ1jypW3kfJtG5PRmWbYx/mfG/2P1DTkKAu8cZ6BwQ0ZYxr5T6fBkF2/xb9HCHmXhR1FOMx0scHTI1KrcIJPUsfi3Ri62UkGftOIhU/sCYoOwOx3LaapZokvFGZc3mLR/xY/An+8KfVETI62/pUoTPLgINcqVv7oThwAsHf+/xQ0CywHT9EyOehjU6Wj1Nb9GYkFD8fRRHYuZ5GnowavEhnrri2OpaKUkointhbbftejR/p9cb4Pak9DCZNtDkH59uYOyM2mNDRAFRmlSA/FsxZsWd8/VRDBAkQtuxd4CUyYAWHshwl96kygnXrw4RSO05VqyNq8EO8j3RtyztXs1wcj7qbkcIrgaAnWoJNaCOPex+XpX8FB3b3teg7C/auDAR6laJp5jO8Lw4o2uMKIkEaO1XRD5cGouQXU4k0iNF6QoZApe0swTETsFBD1Dq6h3fGE1jgk5gUh80j0BFcaucrr4OnChu2MSG01Dos3KxnoqjgCiUs1HjyUaKz3GCSm1V/YdlcYF+zouF6yx0qeAUmS+tedo4Rwrh5vIm3xfIggU6rffbQuc2rLEvslD09eXHSEMNyHyC1zRALg959+76s1VwriHGWD7PEv2KLjCXKgP8J4EflQmygI3WyEaqhRnKJSID+z4yCYV10dSDDarR7uR+dPLMvT4f/uPvi2Blsu6S1q/leLvGloKsc+BO87esUOSP339fuTBDVj0MGrW/WuzY19XGV59vP4oqi4kV4SS8ABSwcD03WwI3BtAIdV7/MhfdhZ+KsrTv9tkEwvcOgAsKSc+HpQeMsnjhjRjTsyniOXZHMaY8GEq/ct7P7iy6p6rsx+qeeYjsWt8EwCZMp1Km+zxaNcfEKBEuqcyM6iwXA7yg/a6rL4UvhJiAy+/nrvvHs4u1HgblW5IVu5/m22mQaewRRTLZyTt0sz3Mz6UtSYyuFtwNfcOneg27OmvBNP3QdFOjb5+beRG1uiRVX4/6VyC/9Y4jo5HHP9rQxx1ACNU1SXTSu4AaDLDKMt+jyJOod5qh9idnbrbNBv0/nXNuzCuCx87V2tOpSZV8WLNlKj/adBWRLT6lBkrbn3mHI7BMD/SYtshZjWbYIqwQtEdVRxRsOTrjDjNC74yCwuiQur/NsBDT2x/iir4NZ3U0EFnSQ5AFr/oAv95Lq17n1XdIKSr6OCuOlZEMznqMwhNgbh5UMx+Vb9bp9dHGvQOzKQ4mNLO6skBs2QQGQ9TrHHFtWemzuUUuSkswzd7Ye+PFGYms+Iw2RKjBQaboP+w78xPrrPpNf/YYBCtVdMpmMobmAOxx0YqlcwLre/crAI1wkxAqVRySpfft726DSLudQRzf2SCYCYPf8ldOh0NN/MOT122+j4YyjWOSr9GycGm7Td04FOl78fOFoL+6QTTxJoZNnTl6U5a9l2Lahcwy6S6fNE/9GL3iMNvPBo9JyhtvZ/TfEW61HmwysX0yH44MHA1TdANrMpIKZyHtmstQOb3ej3j2D8ZsafVmkmJUciczMdE9vmLZTPDmWI43kYiF3AHoJdsXZTS6vlqIlU4xDI2iRmQznO7hp0WnY3umn6Ze3ZKmVl5JY7JvCn/+kerDUxWj7a+kImSOgGJCbHV+5SCqSiEUdHbmpgJ1Huc0zjSzQkX9YKw8KeCSymtCwN4ihCaZ21kIgSXSBgPX9+r5HdNbM+o37ENHV/tKuvYqMwPyPz63On5ObWYKODwx1QNP99nZRum+lD0aTWcTAl0O7oOClzb2Lrf5ozT9ydR2MzqovrN8rTngazWh6ypguUWrEqoG2/pJyxAKLmlbjg5Vow+R6ZCBzHkx7xE2kFNWDvMybU3kGW6SLfopN0uLYIw9UiMh1cPBaDp8lvFLit/gT9kdBeWrFkwtWTAWEVBr8W4q+rSkbImTx/Cuhpt8JAeRyW6lUdpwZNYzWG6UrNiWiBVfC5Tscq/wkssGpV47smmxkMEEA5NvX43r5O4weeXNxVL0zRVdFHysnL/nHwQZCCwqG9K40egNRBNMeuG1xlfYjKjbICA8bEarYf8qvYwvapckgJ2080dwa6vLKapRYTucKNUZcz4Qvi7s5RmAy3D5eHZbIBC/fjiimdi+5oFZoMnk8WVz3ISvc8qsAnb1G0qS7Vf1wVWaPJjgmrOdK+zWrtTcICN0VLBJ/sIJuZjNMc7ZR/OgrCGbeZpG3gwHIZ8Qg==","it":310000};
+const SETUP_BLOB = {"salt":"zb91fanWnXdvv8afcsyFfg==","iv":"Hi7QeX3P6Wywojji","ct":"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","it":310000};
 const DEMO = false;               // sample-data build for showing people   // encrypted roster + scanners (online copy only); unlocked with the setup code            // 'employee' = kiosk the crew uses; 'manager' = leads only
 const SEED = {"employees": [], "scanners": [], "location": "West Branch"};
 const KEY = 'afScannerSignin_' + (DEMO ? 'demo_' : '') + MODE;
@@ -10510,7 +10532,7 @@ const TX = {
     New:'New', LikeNew:'Like New', Defects:'Damage / Defects',
     dmgWhat:'What’s wrong with it?', dmgNote:'Describe the damage (required)', photo:'📷 Add a photo of the damage', photoRe:'Retake photo',
     sign:'Sign to confirm', ackOut:'I, {name}, am taking scanner #{n} in the condition marked above. I am responsible for it until I return it.',
-    ackRet:'I, {name}, am returning scanner #{n} in the condition marked above.', clear:'Clear', signHint:'Sign with your finger',
+    ackRet:'I, {name}, am returning scanner #{n} in the condition marked above.', clear:'Clear', signHint:'Sign with your finger', sigDraw:'✍️ Draw', sigType:'⌨️ Type name', sigCheck:'☑️ Check mark', typeHint:'Type your full name', typePrev:'Your typed signature shows here', checkLbl:'I, {name}, check this box as my electronic signature.', needType:'Type your full name to sign.', needCheck:'Tick the box to sign.',
     next:'Next', back:'Back', cancel:'Cancel', confirmOut:'Check Out', confirmRet:'Return Scanner',
     doneOut:'You have scanner #{n}', doneOutSub:'Return it here at the end of your shift.', doneRet:'Scanner #{n} returned', doneRetSub:'Thank you! Put it on the charger.',
     already:'You already have scanner #{n} checked out. Return it before taking another.', noneOut:'You don’t have a scanner checked out right now.',
@@ -10536,7 +10558,7 @@ const TX = {
     New:'Nuevo', LikeNew:'Como nuevo', Defects:'Daños / Defectos',
     dmgWhat:'¿Qué tiene?', dmgNote:'Describe el daño (obligatorio)', photo:'📷 Agrega una foto del daño', photoRe:'Tomar otra foto',
     sign:'Firma para confirmar', ackOut:'Yo, {name}, estoy tomando el escáner #{n} en la condición marcada arriba. Soy responsable de él hasta que lo devuelva.',
-    ackRet:'Yo, {name}, estoy devolviendo el escáner #{n} en la condición marcada arriba.', clear:'Borrar', signHint:'Firma con tu dedo',
+    ackRet:'Yo, {name}, estoy devolviendo el escáner #{n} en la condición marcada arriba.', clear:'Borrar', signHint:'Firma con tu dedo', sigDraw:'✍️ Dibujar', sigType:'⌨️ Escribir nombre', sigCheck:'☑️ Marca', typeHint:'Escribe tu nombre completo', typePrev:'Tu firma escrita aparece aquí', checkLbl:'Yo, {name}, marco esta casilla como mi firma electrónica.', needType:'Escribe tu nombre completo para firmar.', needCheck:'Marca la casilla para firmar.',
     next:'Siguiente', back:'Atrás', cancel:'Cancelar', confirmOut:'Sacar escáner', confirmRet:'Devolver escáner',
     doneOut:'Tienes el escáner #{n}', doneOutSub:'Devuélvelo aquí al final de tu turno.', doneRet:'Escáner #{n} devuelto', doneRetSub:'¡Gracias! Ponlo en el cargador.',
     already:'Ya tienes el escáner #{n}. Devuélvelo antes de tomar otro.', noneOut:'No tienes ningún escáner registrado ahora.',
@@ -10573,6 +10595,7 @@ function sigPad(canvas){
   return {
     clear(){ ctx.clearRect(0, 0, canvas.width, canvas.height); ink = false; },
     hasInk: () => ink,
+    refit(){ if (!ink) fit(); },
     _forceInk(){ ctx.beginPath(); ctx.moveTo(20, 60); ctx.lineTo(160, 30); ctx.stroke(); ink = true; },
     data(){ if (!ink) return null; const o = document.createElement('canvas'); o.width = 420; o.height = Math.round(420 * canvas.height / canvas.width); const c = o.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0,0,o.width,o.height); c.drawImage(canvas, 0, 0, o.width, o.height); return o.toDataURL('image/jpeg', .7); }
   };
@@ -10776,7 +10799,11 @@ function condBlock(st){
       <div class="photo-row"><label class="btn ghost">${esc(st.photo ? T('photoRe') : T('photo'))}<input type="file" accept="image/*" capture="environment" data-photo="1" hidden></label>${st.photo ? `<img src="${st.photo}" alt="damage photo">` : ''}</div>
     </div>`;
 }
-const sigBox = () => `<div class="sigwrap"><canvas id="sig"></canvas><div class="x"></div><div class="hint">✍️ ${esc(T('signHint'))}</div></div><div style="text-align:right;margin-top:6px"><button class="btn ghost sm" data-act="sigClear">${esc(T('clear'))}</button></div>`;
+let SIGMODE = 'draw';   // remembered while the page is open
+const sigBox = () => `<div class="sigmodes">${['draw','type','check'].map(m => `<button type="button" data-act="sigMode" data-m="${m}" class="${SIGMODE === m ? 'on' : ''}">${esc(T({draw:'sigDraw',type:'sigType',check:'sigCheck'}[m]))}</button>`).join('')}</div>
+  <div class="sigpane" data-p="draw" ${SIGMODE === 'draw' ? '' : 'hidden'}><div class="sigwrap"><canvas id="sig"></canvas><div class="x"></div><div class="hint">✍️ ${esc(T('signHint'))}</div></div><div style="text-align:right;margin-top:6px"><button class="btn ghost sm" data-act="sigClear">${esc(T('clear'))}</button></div></div>
+  <div class="sigpane" data-p="type" ${SIGMODE === 'type' ? '' : 'hidden'}><input type="text" id="sigTyped" class="sigtyped" placeholder="${esc(T('typeHint'))}" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="60"><div class="sigprev" id="sigPrev" data-ph="${esc(T('typePrev'))}"></div></div>
+  <div class="sigpane" data-p="check" ${SIGMODE === 'check' ? '' : 'hidden'}><label class="sigcheck" id="sigChkL"><input type="checkbox" id="sigChk"><span id="sigChkT"></span></label></div>`;
 function readCond(st){
   const box = document.getElementById('dmgNote'); if (box) st.note = box.value.trim();
   st.defects = [...document.querySelectorAll('[data-def]')].filter(x => x.checked).map(x => x.dataset.def);
@@ -10787,7 +10814,48 @@ function condError(st){
   return '';
 }
 let PAD = null;
-function mountSig(){ const c = document.getElementById('sig'); PAD = c ? sigPad(c) : null; }
+// signer(): who is signing (for the check-mark text + stamp). Returns '' when not known yet.
+function mountSig(signer){
+  const c = document.getElementById('sig'); if (!c) { PAD = null; return; }
+  const draw = sigPad(c), who = () => (signer && signer()) || '';
+  const typed = $('#sigTyped'), prev = $('#sigPrev'), chk = $('#sigChk'), chkL = $('#sigChkL'), chkT = $('#sigChkT');
+  const typedVal = () => (typed ? typed.value.trim().replace(/\s+/g, ' ') : '');
+  const label = () => { if (chkT) chkT.textContent = T('checkLbl', { name: who() || '____' }); };
+  label();
+  if (typed) typed.addEventListener('input', () => { prev.textContent = typedVal(); poke(); });
+  if (chk) chk.addEventListener('change', () => { chkL.classList.toggle('on', chk.checked); poke(); });
+  const stamp = (render) => {
+    const o = document.createElement('canvas'); o.width = 420; o.height = 130; const x = o.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, 420, 130); render(x);
+    x.fillStyle = '#5b6478'; x.font = '11px Arial, sans-serif'; x.textAlign = 'left';
+    x.fillText((SIGMODE === 'type' ? 'Typed electronic signature' : 'Electronic check-mark signature') + ' · ' + new Date().toLocaleString(), 12, 122);
+    return o.toDataURL('image/jpeg', .8);
+  };
+  PAD = {
+    mode: () => SIGMODE,
+    relabel: label,
+    refit: () => draw.refit(),
+    clear(){ draw.clear(); if (typed) { typed.value = ''; prev.textContent = ''; } if (chk) { chk.checked = false; chkL.classList.remove('on'); } },
+    hasInk(){ return SIGMODE === 'type' ? typedVal().replace(/[^\p{L}]/gu, '').length >= 2 : SIGMODE === 'check' ? !!(chk && chk.checked) : draw.hasInk(); },
+    need(){ return T(SIGMODE === 'type' ? 'needType' : SIGMODE === 'check' ? 'needCheck' : 'needSig'); },
+    _forceInk(){ draw._forceInk(); },
+    data(){
+      if (!this.hasInk()) return null;
+      if (SIGMODE === 'draw') return draw.data();
+      if (SIGMODE === 'type') return stamp(x => {
+        x.fillStyle = '#0b1120'; let fs = 46; const t = typedVal();
+        do { x.font = `italic ${fs}px 'Segoe Script','Brush Script MT','Lucida Handwriting','URW Chancery L',cursive`; fs -= 2; } while (x.measureText(t).width > 390 && fs > 16);
+        x.fillText(t, 14, 74); x.strokeStyle = '#c7cdd8'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(12, 90); x.lineTo(408, 90); x.stroke();
+      });
+      return stamp(x => {
+        x.fillStyle = '#1a7f42'; x.beginPath(); x.arc(52, 58, 34, 0, Math.PI * 2); x.fill();
+        x.strokeStyle = '#fff'; x.lineWidth = 8; x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath(); x.moveTo(36, 59); x.lineTo(48, 72); x.lineTo(70, 44); x.stroke();
+        x.fillStyle = '#0b1120'; x.font = 'bold 19px Arial, sans-serif'; x.fillText('Electronically signed', 100, 50);
+        x.font = '17px Arial, sans-serif'; let n = who() || 'Employee'; while (x.measureText(n).width > 305 && n.length > 4) n = n.slice(0, -2) + '…'; x.fillText(n, 100, 76);
+      });
+    }
+  };
+}
 
 function startAs(emp, via){
   F.emp = emp; F.via = via; F.err = ''; F.pinBuf = ''; F.pin1 = null; F.tries = 0; F.pinOk = false;
@@ -10800,11 +10868,11 @@ function startAs(emp, via){
 const kIdm = () => F.via === 'badge' ? (F.pinOk ? 'badge+pin' : 'badge') : (F.pinOk ? 'pin' : 'name');
 
 /* ================= records ================= */
-async function doCheckout({ emp, sc, cond, defects, note, photo, sig, leader, verify, idm }){
+async function doCheckout({ emp, sc, cond, defects, note, photo, sig, sigHow, leader, verify, idm }){
   if (openLog(sc.id) && !openLog(sc.id).retAt) throw new Error('Scanner #' + sc.num + ' is already checked out.');
   const prev = openLog(sc.id); if (prev) await closeLog(prev, null, 'auto');   // returned-but-not-inspected → close it out
   const log = { id: uid('G'), scannerId: sc.id, num: sc.num, serial: sc.serial, empId: emp.id, empName: emp.name,
-    outAt: nowISO(), outCond: cond, outDefects: defects || [], outNote: note || '', outPhoto: await storeBlob(photo, 'P'), outSig: await storeBlob(sig, 'Z'),
+    outAt: nowISO(), outCond: cond, outDefects: defects || [], outNote: note || '', outPhoto: await storeBlob(photo, 'P'), outSig: await storeBlob(sig, 'Z'), outSigHow: sig ? (sigHow || 'draw') : null,
     outLeader: leader || null, verify: verify || 'serial', location: S.settings.site, outId: idm || (leader ? 'lead' : 'pin'), retAt: null, retCond: null, closedAt: null };
   S.logs.unshift(log);
   // Damage the NEXT person finds that the LAST person didn't report = accountability flag on the last person
@@ -10816,9 +10884,9 @@ async function doCheckout({ emp, sc, cond, defects, note, photo, sig, leader, ve
   }
   save(); return log;
 }
-async function doReturn(log, { cond, defects, note, photo, sig, leader, idm }){
+async function doReturn(log, { cond, defects, note, photo, sig, sigHow, leader, idm }){
   log.retAt = nowISO(); log.retId = idm || (leader ? 'lead' : 'pin'); log.retCond = cond; log.retDefects = defects || []; log.retNote = note || '';
-  log.retPhoto = await storeBlob(photo, 'P'); log.retSig = await storeBlob(sig, 'Z'); log.retLeader = leader || null;
+  log.retPhoto = await storeBlob(photo, 'P'); log.retSig = await storeBlob(sig, 'Z'); log.retSigHow = sig ? (sigHow || 'draw') : null; log.retLeader = leader || null;
   if (cond === 'Defects' && log.outCond !== 'Defects') addIncident('damage', log, `Returned damaged by ${log.empName}: ${note}`);
   if (cond === 'Defects' && log.outCond === 'Defects' && note) addIncident('damage-more', log, `Returned with defects (was already damaged at check-out). Return note: ${note}`, true);
   if (leader) await closeLog(log, leader, 'lead');
@@ -10983,7 +11051,7 @@ function leadCheckout(sc){
     <label class="f">Condition</label><div id="mCond">${condBlock(MF)}</div>
     <label class="f">Employee signature</label>${sigBox()}
     <div class="err" id="mErr"></div><div class="navrow"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn" data-act="mOutSave">Check out to employee</button></div>`);
-  mountSig();
+  mountSig(() => { const e = MF && empById(MF.empId); return e ? displayName(e.name) : ''; });
 }
 function mEmpRows(q){
   const t = q.trim().toLowerCase();
@@ -10996,7 +11064,7 @@ function leadCheckin(l){
     <label class="f">Condition now (inspect it)</label><div id="mCond">${condBlock(MF)}</div>
     <label class="f">Employee signature <span class="muted" style="font-weight:400">(optional — get it if they’re here)</span></label>${sigBox()}
     <div class="err" id="mErr"></div><div class="navrow"><div class="row"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn ghost" data-act="mMarkLost">⚠ Mark lost</button></div><button class="btn green" data-act="mInSave">Check in</button></div>`);
-  mountSig();
+  mountSig(() => displayName(l.empName));
 }
 function leadInspect(l){
   MF = { kind: 'inspect', log: l, cond: l.retCond, defects: (l.retDefects || []).slice(), note: l.retNote || '', photo: null };
@@ -11004,15 +11072,16 @@ function leadInspect(l){
     <label class="f">Condition you see</label><div id="mCond">${condBlock(MF)}</div>
     <div class="err" id="mErr"></div><div class="navrow"><div class="row"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn ghost" data-act="logDetail" data-id="${l.id}">Full record</button></div><button class="btn green" data-act="mInspectSave">Confirm check-in</button></div>`);
 }
+const SIG_HOW = { draw: 'drawn', type: 'typed name', check: 'electronic check mark' };
 const ID_LABEL = { pin: 'Name + PIN', badge: 'QR badge', 'badge+pin': 'QR badge + PIN', name: 'Name only (no PIN)', lead: 'Handled by lead' };
 async function logDetail(id){
   const l = S.logs.find(x => x.id === id); if (!l) return;
   const cond = (c, d, n) => `${esc(condLabel(c))}${c === 'Defects' ? ` <span class="muted">(${esc(defText(d))})</span>` : ''}${n ? `<div class="note">${esc(n)}</div>` : ''}`;
   modal(`Record · scanner #${l.num} · ${l.empName}`, `<div class="grid2">
     <div><h3 style="margin-top:0">Check-out</h3><dl class="kv"><dt>When</dt><dd>${esc(fmtD(l.outAt))}</dd><dt>Location</dt><dd>${esc(l.location || '')}</dd><dt>Serial</dt><dd style="font-family:monospace">${esc(l.serial)}</dd><dt>Verified by</dt><dd>${l.verify === 'scan' ? 'Barcode scan' : 'Typed last 4 of serial'}</dd><dt>Identity</dt><dd>${esc(ID_LABEL[l.outId] || '—')}</dd><dt>Handed out by</dt><dd>${esc(l.outLeader || 'Self (kiosk)')}</dd><dt>Condition</dt><dd>${cond(l.outCond, l.outDefects, l.outNote)}</dd></dl>
-      <div id="dOutPh"></div><p class="muted" style="margin-bottom:4px">Signature</p><div id="dOutSig" class="muted">—</div></div>
+      <div id="dOutPh"></div><p class="muted" style="margin-bottom:4px">Signature${SIG_HOW[l.outSigHow] ? ' · ' + SIG_HOW[l.outSigHow] : ''}</p><div id="dOutSig" class="muted">—</div></div>
     <div><h3 style="margin-top:0">Return</h3>${l.retAt ? `<dl class="kv"><dt>When</dt><dd>${esc(fmtD(l.retAt))}</dd><dt>Condition</dt><dd>${cond(l.retCond, l.retDefects, l.retNote)}</dd><dt>Lead check-in</dt><dd>${esc(l.inLeader ? l.inLeader + ' · ' + fmtD(l.closedAt) : (l.closedAt ? 'auto (re-issued)' : 'pending'))}</dd>${l.inspectNote ? `<dt>Lead note</dt><dd>${esc(l.inspectNote)}</dd>` : ''}</dl>
-      <div id="dRetPh"></div><p class="muted" style="margin-bottom:4px">Signature</p><div id="dRetSig" class="muted">—</div>` : '<p class="muted">Still out.</p>'}</div></div>`, { wide: true });
+      <div id="dRetPh"></div><p class="muted" style="margin-bottom:4px">Signature${SIG_HOW[l.retSigHow] ? ' · ' + SIG_HOW[l.retSigHow] : ''}</p><div id="dRetSig" class="muted">—</div>` : '<p class="muted">Still out.</p>'}</div></div>`, { wide: true });
   const img = async (bid, sel, cls) => { const d = await Blobs.get(bid); const el = $(sel); if (d && el) el.innerHTML = `<img class="${cls}" src="${d}">`; };
   img(l.outSig, '#dOutSig', 'sigimg'); img(l.retSig, '#dRetSig', 'sigimg'); img(l.outPhoto, '#dOutPh', 'phimg'); img(l.retPhoto, '#dRetPh', 'phimg');
 }
@@ -11040,7 +11109,7 @@ function scEdit(id){
 function mBadge(code){
   const r = parseBadge(code); if (!r) return false;
   if (r.bad) { mErr(r.bad === 'badgeOld' ? 'That badge was replaced — it no longer works.' : 'Badge not recognized.'); return true; }
-  MF.empId = r.e.id; MF.viaBadge = true; const q = $('#mPickQ'); if (q) q.value = ''; $('#mPickList').innerHTML = mEmpRows(''); mErr(''); toast('Badge: ' + displayName(r.e.name)); return true;
+  MF.empId = r.e.id; MF.viaBadge = true; const q = $('#mPickQ'); if (q) q.value = ''; $('#mPickList').innerHTML = mEmpRows(''); mErr(''); if (PAD && PAD.relabel) PAD.relabel(); toast('Badge: ' + displayName(r.e.name)); return true;
 }
 
 /* ---------- print + export ---------- */
@@ -11130,7 +11199,7 @@ function render(){
     return;
   }
   app.innerHTML = F ? kioskFlow() : kioskHome();
-  if (F && (F.step === 'sign' || F.step === 'lost')) mountSig();
+  if (F && (F.step === 'sign' || F.step === 'lost')) mountSig(() => F && F.emp ? displayName(F.emp.name) : '');
   if (F && F.step === 'who') setTimeout(() => { const q = $('#pickQ'); q && q.focus(); }, 30);
   if (F && F.step === 'verify') setTimeout(() => { const q = $('#ver'); q && q.focus(); }, 30);
 }
@@ -11197,20 +11266,29 @@ const ACT = {
   },
   kCondNext(){ readCond(F); const e = condError(F); if (e) return kErr(e); F.step = 'sign'; render(); },
   sigClear(){ PAD && PAD.clear(); },
+  sigMode(d){
+    SIGMODE = d.m;
+    document.querySelectorAll('[data-act=sigMode]').forEach(b => b.classList.toggle('on', b.dataset.m === d.m));
+    document.querySelectorAll('.sigpane').forEach(p => { p.hidden = p.dataset.p !== d.m; });
+    if (d.m === 'draw' && PAD && PAD.refit) PAD.refit();   // canvas may have been hidden at mount → size it now that it shows
+    if (d.m === 'type') { const t = $('#sigTyped'); if (t) setTimeout(() => t.focus(), 30); }
+    if (PAD && PAD.relabel) PAD.relabel();
+    const er = $('#kErr') || $('#mErr'); if (er) er.textContent = '';
+  },
   async kFinish(){
-    if (!PAD || !PAD.hasInk()) return kErr(T('needSig'));
-    const sig = PAD.data();
+    if (!PAD || !PAD.hasInk()) return kErr(PAD ? PAD.need() : T('needSig'));
+    const sig = PAD.data(), sigHow = PAD.mode();
     try {
-      if (F.type === 'out') await doCheckout({ emp: F.emp, sc: F.sc, cond: F.cond, defects: F.defects, note: F.note, photo: F.photo, sig, verify: F.verify, idm: kIdm() });
-      else await doReturn(F.log, { cond: F.cond, defects: F.defects, note: F.note, photo: F.photo, sig, idm: kIdm() });
+      if (F.type === 'out') await doCheckout({ emp: F.emp, sc: F.sc, cond: F.cond, defects: F.defects, note: F.note, photo: F.photo, sig, sigHow, verify: F.verify, idm: kIdm() });
+      else await doReturn(F.log, { cond: F.cond, defects: F.defects, note: F.note, photo: F.photo, sig, sigHow, idm: kIdm() });
       F.step = 'done'; render(); setTimeout(() => { if (F && F.step === 'done') { F = null; LANG = 'en'; render(); } }, 9000);
     } catch(e){ kErr(e.message); }
   },
   kLost(){ F.step = 'lost'; render(); },
   async kLostSave(){
     const note = $('#lostNote').value.trim(); if (note.length < 3) return kErr(T('lostNote'));
-    if (!PAD || !PAD.hasInk()) return kErr(T('needSig'));
-    F.log.lostReport = note; F.log.lostSig = await storeBlob(PAD.data(), 'Z'); F.log.lost = true; F.log.lostAt = nowISO();
+    if (!PAD || !PAD.hasInk()) return kErr(PAD ? PAD.need() : T('needSig'));
+    F.log.lostReport = note; F.log.lostSigHow = PAD.mode(); F.log.lostSig = await storeBlob(PAD.data(), 'Z'); F.log.lost = true; F.log.lostAt = nowISO();
     const sc = scById(F.log.scannerId); sc.status = 'lost'; sc.note = 'Reported lost by ' + F.emp.name + ' ' + fmtD(nowISO());
     addIncident('lost', F.log, `${F.emp.name} reported scanner #${F.log.num} lost: ${note}`);
     save(); F.lost = true; F.step = 'done'; render(); setTimeout(() => { if (F && F.step === 'done') { F = null; render(); } }, 9000);
@@ -11230,7 +11308,7 @@ const ACT = {
   tile(d){ openTile(d.id); },
   closeModal(){ closeModal(); },
   modalBg(d, e){ if (e.target.classList.contains('modal-bg')) closeModal(); },
-  mPickEmp(d){ MF.empId = d.id; MF.viaBadge = false; $('#mPickList').innerHTML = mEmpRows($('#mPickQ').value); },
+  mPickEmp(d){ MF.empId = d.id; MF.viaBadge = false; $('#mPickList').innerHTML = mEmpRows($('#mPickQ').value); if (PAD && PAD.relabel) PAD.relabel(); },
   mCamBadge(){ startCam($('#cam'), code => mBadge(code)); },
   async mOutSave(){
     readCond(MF);
@@ -11239,14 +11317,14 @@ const ACT = {
     const ol = empOpenLog(emp.id); if (ol) return mErr(`${emp.name} still has #${ol.num} — check that one in first.`);
     if (!serialMatches(MF.sc, $('#mVer').value)) return mErr(`Serial doesn’t match #${MF.sc.num}. Check the back of the scanner.`);
     const e = condError(MF); if (e) return mErr(e);
-    if (!PAD || !PAD.hasInk()) return mErr('Have the employee sign.');
-    try { await doCheckout({ emp, sc: MF.sc, cond: MF.cond, defects: MF.defects, note: MF.note, photo: MF.photo, sig: PAD.data(), leader: M.leader.name, verify: $('#mVer').value.trim().length > 4 ? 'scan' : 'serial', idm: MF.viaBadge ? 'badge' : 'lead' }); }
+    if (!PAD || !PAD.hasInk()) return mErr(PAD && PAD.mode() !== 'draw' ? PAD.need() : 'Have the employee sign.');
+    try { await doCheckout({ emp, sc: MF.sc, cond: MF.cond, defects: MF.defects, note: MF.note, photo: MF.photo, sig: PAD.data(), sigHow: PAD.mode(), leader: M.leader.name, verify: $('#mVer').value.trim().length > 4 ? 'scan' : 'serial', idm: MF.viaBadge ? 'badge' : 'lead' }); }
     catch(err){ return mErr(err.message); }
     const n = MF.sc.num; closeModal(); render(); toast(`#${n} checked out to ${displayName(emp.name)}.`);
   },
   async mInSave(){
     readCond(MF); const e = condError(MF); if (e) return mErr(e);
-    const l = MF.log; await doReturn(l, { cond: MF.cond, defects: MF.defects, note: MF.note, photo: MF.photo, sig: PAD && PAD.hasInk() ? PAD.data() : null, leader: M.leader.name });
+    const l = MF.log; await doReturn(l, { cond: MF.cond, defects: MF.defects, note: MF.note, photo: MF.photo, sig: PAD && PAD.hasInk() ? PAD.data() : null, sigHow: PAD && PAD.hasInk() ? PAD.mode() : null, leader: M.leader.name });
     closeModal(); render(); toast(`#${l.num} checked in.`);
   },
   async mInspectSave(){
