@@ -10357,6 +10357,8 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 });</script>
 <script>
 'use strict';
+if (window.AFNative) window.print = () => AFNative.print(document.title);  // Android app: native print / Save as PDF
+const IN_APP = /[?&]app\b/.test(location.search);  // opened from the installed app's chooser
 const HOSTED = false;         // true = the online/installable copy (no names built in)
 const MODE = 'employee';
 const SETUP_BLOB = null;
@@ -10380,7 +10382,7 @@ let S;
 function defaultState(){
   return {
     v: 1,
-    settings: { signIn: 'either', overdueHours: 12, site: SEED.location || 'West Branch', locations: [SEED.location || 'West Branch'], shiftEnds: '16:00', graceMin: 15 },
+    settings: { signIn: 'either', overdueHours: 12, site: SEED.location || 'My Location', locations: [SEED.location || 'My Location'], shiftEnds: '16:00', graceMin: 15 },
     leaders: [{ id: uid('L'), name: 'Manager', pin: hashPin('1234'), mustChange: true }],
     employees: SEED.employees.map(n => ({ id: uid('E'), name: n, active: true, pin: null })),
     scanners: SEED.scanners.map(s => ({ id: uid('S'), num: s.num, serial: s.serial, status: 'available', note: '' })),
@@ -10391,7 +10393,7 @@ function load(){
   try { S = JSON.parse(localStorage.getItem(KEY)); } catch(e){ S = null; }
   if (!S || !S.v) { S = DEMO ? demoState() : defaultState(); save(); }
   S.incidents = S.incidents || []; S.audit = S.audit || [];
-  if (!S.settings.locations || !S.settings.locations.length) S.settings.locations = [S.settings.site || 'West Branch'];
+  if (!S.settings.locations || !S.settings.locations.length) S.settings.locations = [S.settings.site || 'My Location'];
   if (!S.settings.locations.includes(S.settings.site)) S.settings.site = S.settings.locations[0];
   const st = S.settings; if (!st.signIn) st.signIn = st.requirePin === false ? 'none' : 'either'; delete st.requirePin;
   if (st.shiftEnds == null) st.shiftEnds = '16:00'; if (st.graceMin == null) st.graceMin = 15; S.alertsFired = S.alertsFired || [];
@@ -11001,7 +11003,7 @@ function viewScanners(){
   const list = S.scanners.filter(s => !q || s.num.includes(q) || s.serial.toLowerCase().includes(q));
   const stl = { available:'<span class="pill p-green">In service</span>', repair:'<span class="pill p-gray">In repair</span>', lost:'<span class="pill p-red">Lost</span>', retired:'<span class="pill p-gray">Retired</span>' };
   return `<div class="toolbar"><h2 style="margin:0;flex:1">Scanners <span class="muted" style="font-size:15px">${S.scanners.filter(s => s.status !== 'retired').length} in fleet</span></h2>
-    <button class="btn sm" data-act="scAdd">+ Add scanner</button><button class="btn sm ghost" data-act="printLabels">🖨 Number labels</button></div>
+    <button class="btn sm" data-act="scAdd">+ Add scanner</button><button class="btn sm ghost" data-act="scBulk">Paste a list</button><button class="btn sm ghost" data-act="printLabels">🖨 Number labels</button></div>
     <input type="text" placeholder="Search # or serial…" data-inp="scQ" value="${esc(M.scQ)}" style="margin-bottom:12px">
     <div class="tblwrap"><table><thead><tr><th>#</th><th>Serial</th><th>Status</th><th>Right now</th><th>Uses</th><th>Damage reports</th><th>Note</th><th></th></tr></thead><tbody>
     ${list.map(s => { const l = openLog(s.id); const uses = S.logs.filter(x => x.scannerId === s.id).length; const dm = S.incidents.filter(i => i.scannerId === s.id && !i.info).length;
@@ -11024,7 +11026,7 @@ function viewData(){
     ${window.Notification ? `<button class="btn sm ghost" style="margin-top:8px" data-act="notifyOn">🔔 ${Notification.permission === 'granted' ? 'Desktop pop-ups are on' : 'Also show desktop pop-ups'}</button>` : ''}
     <label class="f">Flag a scanner as overdue after (hours)</label><input type="number" min="1" max="72" data-inp="setOver" value="${S.settings.overdueHours}" style="width:120px">
     <label class="f">This device is at</label><select data-inp="setSite">${S.settings.locations.map(l => `<option ${l === S.settings.site ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
-    <div class="row" style="margin-top:8px"><input type="text" id="newLoc" placeholder="Add another location…" style="flex:1;width:auto"><button class="btn sm ghost" data-act="locAdd">+ Add</button>${S.settings.locations.length > 1 ? '<button class="btn sm ghost" data-act="locDel">Remove selected</button>' : ''}</div>
+    <div class="row" style="margin-top:8px"><input type="text" id="newLoc" placeholder="Add another location…" style="flex:1;width:auto"><button class="btn sm ghost" data-act="locAdd">+ Add</button><button class="btn sm ghost" data-act="locRename">✎ Rename</button>${S.settings.locations.length > 1 ? '<button class="btn sm ghost" data-act="locDel">Remove selected</button>' : ''}</div>
     <p class="muted" style="font-size:13px;margin:6px 0 0">Every check-out is stamped with the location, and it prints on the sheets.</p>
     </div>
     <div class="card"><h3 style="margin-top:0">Backup</h3><p class="muted" style="font-size:14px">Everything is stored on <b>this device only</b>. Download a backup at least weekly (it includes signatures and photos).</p>
@@ -11130,7 +11132,7 @@ function printOut(){
     (missing.length ? `<h3>Not in service</h3><table><tbody>${missing.map(s => `<tr><td>${esc(s.num)}</td><td>${esc(s.status)}</td><td>${esc(s.note)}</td></tr>`).join('')}</tbody></table>` : ''));
 }
 function printLabels(){ printHtml(`<div class="labels">${S.scanners.filter(s => s.status !== 'retired').map(s => `<div><div class="lq">${qrSvg('AFSC1.' + s.serial)}</div><div><b>${esc(s.num)}</b><small>U.S. AutoForce scanner<br>${esc(S.settings.site)}</small></div></div>`).join('')}</div>`, 'portrait'); }
-function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/plain' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+function download(name, text, type){ if (window.AFNative) { try { AFNative.save(name, String(text), type || 'text/plain'); return; } catch(e){} } const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: type || 'text/plain' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
 const csvCell = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
 function csvLogs(){
   const rows = [['Location','Scanner #','Serial','Date','TM','ID method out','Time out','Leadership signing out','Condition out','Damage out (Y/N)','Out notes','Time in','Condition in','Damage in (Y/N)','In notes','Leadership signing in','Status']];
@@ -11189,7 +11191,8 @@ function render(){
   $('#hSub').textContent = (MODE === 'employee' && !M.leader ? T('sub') : 'U.S. AutoForce') + ' · 📍 ' + S.settings.site;
   let b = '';
   if (MODE === 'employee' && !M.leader) b = `<button class="hbtn" data-act="lang">🌐 ${esc(T('lang'))}</button><button class="hbtn" data-act="mgrLogin">🔒 ${esc(T('mgr'))}</button>`;
-  else if (M.leader) b = `<span style="opacity:.8;font-size:14px">👤 ${esc(M.leader.name)}</span><button class="hbtn" data-act="lock">🔒 ${MODE === 'employee' ? 'Back to kiosk' : 'Lock'}</button>`;
+  if (IN_APP && !M.leader) b += `<a class="hbtn" style="text-decoration:none" href="index.html?app">⇄ Switch version</a>`;
+  if (M.leader) b = `<span style="opacity:.8;font-size:14px">👤 ${esc(M.leader.name)}</span><button class="hbtn" data-act="lock">🔒 ${MODE === 'employee' ? 'Back to kiosk' : 'Lock'}</button>`;
   $('#hBtns').innerHTML = b;
   const app = $('#app');
   if (M.leader) { app.innerHTML = mgrView(); return; }
@@ -11373,6 +11376,26 @@ const ACT = {
   empHist(d){ const e = empById(d.id); historyModal('History · ' + e.name, S.logs.filter(l => l.empId === e.id)); },
   scHist(d){ const s = scById(d.id); historyModal('History · scanner #' + s.num, S.logs.filter(l => l.scannerId === s.id)); },
   scAdd(){ scEdit(null); }, scEdit(d){ scEdit(d.id); },
+  scBulk(){ MF = { kind: 'bulk' }; modal('Paste scanners', `<p class="muted" style="margin-top:0">One scanner per line: the full serial number, or <b>number, serial</b> (e.g. <code>040, S1234567890</code>). Without a number they're numbered after the last one. Serials already on the list are skipped. You can paste straight from a spreadsheet column.</p><textarea id="bulkT" rows="10"></textarea><div class="err" id="mErr"></div><div class="navrow"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn" data-act="scBulkSave">Add</button></div>`); },
+  scBulkSave(){
+    let n = 0; const bad = [];
+    const haveSer = new Set(S.scanners.map(s => s.serial)), haveNum = new Set(S.scanners.map(s => s.num)), last4 = new Set(S.scanners.map(s => s.serial.slice(-4)));
+    let next = S.scanners.reduce((m, s) => Math.max(m, +s.num || 0), 0) + 1;
+    $('#bulkT').value.split(/\r?\n/).map(x => x.trim()).filter(Boolean).forEach(line => {
+      const parts = line.split(/[,\t;]+|\s{2,}/).map(x => x.trim()).filter(Boolean);
+      let num = null, serial = parts[parts.length - 1].toUpperCase().replace(/\s+/g, '');
+      if (parts.length > 1 && /^#?\d{1,4}$/.test(parts[0])) num = parts[0].replace('#', '').padStart(3, '0');
+      if (serial.length < 6) { bad.push(line); return; }
+      if (haveSer.has(serial)) return;
+      if (last4.has(serial.slice(-4))) { bad.push(line + ' (same last 4 as another)'); return; }
+      if (!num || haveNum.has(num)) { while (haveNum.has(String(next).padStart(3, '0'))) next++; num = String(next++).padStart(3, '0'); }
+      haveSer.add(serial); haveNum.add(num); last4.add(serial.slice(-4));
+      S.scanners.push({ id: uid('S'), num, serial, status: 'available', note: '' }); n++;
+    });
+    S.scanners.sort((a, b) => a.num.localeCompare(b.num));
+    audit(`Bulk-added ${n} scanners`); save(); closeModal(); render();
+    toast(`Added ${n} scanner(s).` + (bad.length ? ` Skipped ${bad.length}: ${bad.slice(0, 3).join('; ')}` : ''), !!bad.length);
+  },
   scSave(){
     const num = $('#sNum').value.trim().padStart(3, '0'), serial = $('#sSer').value.trim().toUpperCase(), status = $('#sStat').value, note = $('#sNote').value.trim();
     if (!/^\d{1,4}$/.test(num)) return mErr('Scanner # should be a number like 040.');
@@ -11418,6 +11441,7 @@ const ACT = {
   notifyOn(){ if (window.Notification) Notification.requestPermission().then(() => render()); },
   csvLogs(){ csvLogs(); }, csvInc(){ csvInc(); }, backup(){ backup(); },
   locAdd(){ const v = ($('#newLoc').value || '').trim().replace(/\s+/g, ' '); if (v.length < 2) return toast('Type a location name.', true); if (S.settings.locations.some(l => l.toLowerCase() === v.toLowerCase())) return toast('Already on the list.', true); S.settings.locations.push(v); audit('Added location ' + v); save(); render(); },
+  locRename(){ const cur = S.settings.site; let v = prompt('Rename location “' + cur + '” to:', cur); if (v == null) return; v = v.trim().replace(/\s+/g, ' '); if (v.length < 2 || v === cur) return; if (S.settings.locations.some(l => l.toLowerCase() === v.toLowerCase())) return toast('Already on the list.', true); S.settings.locations = S.settings.locations.map(l => l === cur ? v : l); S.settings.site = v; audit('Renamed location ' + cur + ' → ' + v); save(); render(); toast('Location renamed to ' + v + '.'); },
   locDel(){ const cur = S.settings.site; if (S.settings.locations.length < 2) return; if (!confirm('Remove location “' + cur + '” from the list? (Old records keep their location.)')) return; S.settings.locations = S.settings.locations.filter(l => l !== cur); S.settings.site = S.settings.locations[0]; audit('Removed location ' + cur); save(); render(); }
 };
 document.addEventListener('click', e => {
